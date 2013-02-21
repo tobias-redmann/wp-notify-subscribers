@@ -12,15 +12,28 @@ Author URI: http://www.tricd.de
 
 function wpns_get_mail_subject($post, $subscriber) {
   
-  return 'Test subject';
+  return 'Neue Bilder in Avas Blog';
   
   
 }
 
 function wpns_get_mail_text($post, $subscriber) {
   
-  return 'Test Body';
+  $url = get_permalink($post->ID);
   
+  $user_name = $subscriber->display_name;
+  
+  $text = "Hallo $user_name,
+  
+  in Avas Blog gibt es neue Photos. Gleich anschauen unter:
+  
+  $url
+    
+  Viele Grüße,
+  Miriam, Tobias und Ava
+  ";
+  
+  return $text;
   
 }
 
@@ -29,13 +42,17 @@ function wpns_send_mail($post, $subscriber) {
   
   $headers = 'From: Avas Blog <blog@avathea.de>' . "\r\n";
   
+  // FIXME: Just for test purposes
+  if ($subscriber->ID == 1 || $subscriber->ID == 2) {
   
-  wp_mail(
-    $subscriber['email'], 
-    wpns_get_mail_subject($post, $subscriber),
-    wpns_get_mail_text($post, $subscriber),
-    $headers
-  );
+    wp_mail(
+      $subscriber->user_email, 
+      wpns_get_mail_subject($post, $subscriber),
+      wpns_get_mail_text($post, $subscriber),
+      $headers
+    );
+  
+  }
   
 }
 
@@ -47,7 +64,7 @@ function wpns_send_mail($post, $subscriber) {
  */
 function wpns_get_subscribers() {
   
-  return array(array('name' => 'Tobias', 'email' => 'tobias.redmann@gmail.com'));
+  return get_users(array('role' => 'subscriber'));
   
 }
 
