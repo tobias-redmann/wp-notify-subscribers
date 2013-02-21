@@ -82,7 +82,8 @@ function wpns_send_mail($post, $subscriber) {
  */
 function wpns_get_subscribers() {
   
-  return get_users(array('role' => 'subscriber'));
+  #return get_users(array('role' => 'subscriber'));
+  return get_users();
   
 }
 
