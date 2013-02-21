@@ -9,7 +9,13 @@ Author URI: http://www.tricd.de
 */
 
 
-
+/**
+ * Get the mail subject
+ * 
+ * @param WP_Post $post
+ * @param WP_User $subscriber
+ * @return string
+ */
 function wpns_get_mail_subject($post, $subscriber) {
   
   return 'Neue Bilder in Avas Blog';
@@ -17,6 +23,13 @@ function wpns_get_mail_subject($post, $subscriber) {
   
 }
 
+
+/**
+ * 
+ * @param WP_Post $post
+ * @param WP_User $subscriber
+ * @return String
+ */
 function wpns_get_mail_text($post, $subscriber) {
   
   $url = get_permalink($post->ID);
@@ -25,25 +38,30 @@ function wpns_get_mail_text($post, $subscriber) {
   
   $text = "Hallo $user_name,
   
-  in Avas Blog gibt es neue Photos. Gleich anschauen unter:
+in Avas Blog gibt es neue Photos. Gleich anschauen unter:
   
-  $url
+$url
     
-  Viele Grüße,
-  Miriam, Tobias und Ava
-  ";
+Viele Grüße,
+Miriam, Tobias und Ava
+";
   
   return $text;
   
 }
 
-
+/**
+ * Send the mail to a specific subscriber
+ * 
+ * @param WP_Post $post
+ * @param WP_User $subscriber
+ */
 function wpns_send_mail($post, $subscriber) {
   
   $headers = 'From: Avas Blog <blog@avathea.de>' . "\r\n";
   
   // FIXME: Just for test purposes
-  if ($subscriber->ID == 1 || $subscriber->ID == 2) {
+  //if ($subscriber->ID == 1 || $subscriber->ID == 2) {
   
     wp_mail(
       $subscriber->user_email, 
@@ -52,7 +70,7 @@ function wpns_send_mail($post, $subscriber) {
       $headers
     );
   
-  }
+  //}
   
 }
 
@@ -88,13 +106,9 @@ function wp_notify_subscribers($post_id) {
   
   }
   
-  
-  
-  
 }
 
 
 add_filter('publish_post', 'wp_notify_subscribers');
-
 
 ?>
