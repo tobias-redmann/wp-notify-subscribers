@@ -131,7 +131,7 @@ function wpns_send_mail($post, $subscriber) {
   $headers = 'From: '. wpns_get_sender_name() .' <'. wpns_get_sender_email() .'>' . "\r\n";
   
   // FIXME: Just for test purposes
-  if ($subscriber->ID == 1 || $subscriber->ID == 2) {
+  //if ($subscriber->ID == 1 || $subscriber->ID == 2) {
   
     wp_mail(
       $subscriber->user_email, 
@@ -140,7 +140,7 @@ function wpns_send_mail($post, $subscriber) {
       $headers
     );
   
-  }
+  //}
   
 }
 
