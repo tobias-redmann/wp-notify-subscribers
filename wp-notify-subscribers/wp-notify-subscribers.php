@@ -9,6 +9,14 @@ Author URI: http://www.tricd.de
 */
 
 
+
+
+function wpns_get_version() {
+  
+  return '0.1';
+  
+}
+
 /**
  * Get the mail subject
  * 
@@ -18,8 +26,64 @@ Author URI: http://www.tricd.de
  */
 function wpns_get_mail_subject($post, $subscriber) {
   
-  return 'Neue Bilder in Avas Blog';
+  $options = wpns_get_options();
   
+  $mail_subject = $options['wpns_message_subject'];
+  
+  return wpns_substitute($post, $subscriber, $mail_subject);
+  
+  
+}
+
+function wpns_get_placeholders() {
+  
+  $placeholders = array();
+  $placeholders[0]     = '[post_url]';
+  $placeholders[1]     = '[receiver_display_name]';
+  $placeholders[2]     = '[receiver_email]';
+  $placeholders[3]     = '[blog_name]';
+  $placeholders[4]     = '[blog_url]';
+  $placeholders[5]     = '[sender_name]';
+  $placeholders[6]     = '[sender_email]';
+  $placeholders[7]     = '[post_short_url]';
+  
+  return $placeholders;
+  
+}
+
+/**
+ * 
+ * @param type $post
+ * @param type $subscriber
+ * @param type $text
+ * @return type
+ */
+function wpns_substitute($post, $subscriber, $text) {
+  
+  $placeholders = wpns_get_placeholders();
+   
+  $substitutions = array();
+  $substitutions[0]    = get_permalink($post->ID);
+  $substitutions[1]    = $subscriber->display_name;
+  $substitutions[2]    = $subscriber->user_email;
+  $substitutions[3]    = get_bloginfo('name');
+  $substitutions[4]    = home_url('/');
+  $substitutions[5]    = wpns_get_sender_name();
+  $substitutions[6]    = wpns_get_sender_email();
+  $substitutions[7]    = wp_get_shortlink($post->ID, 'post');
+  
+  return str_replace($placeholders, $substitutions, $text);
+  
+}
+
+/**
+ * Get the options array we can make with the settings
+ * 
+ * @return Array
+ */
+function wpns_get_options() {
+  
+  return get_option('wpns_options');
   
 }
 
@@ -32,21 +96,27 @@ function wpns_get_mail_subject($post, $subscriber) {
  */
 function wpns_get_mail_text($post, $subscriber) {
   
-  $url = get_permalink($post->ID);
+  $options = wpns_get_options();
   
-  $user_name = $subscriber->display_name;
+  $mail_text = $options['wpns_message_text'];
   
-  $text = "Hallo $user_name,
+  return wpns_substitute($post, $subscriber, $mail_text);
   
-in Avas Blog gibt es neue Photos. Gleich anschauen unter:
+}
+
+function wpns_get_sender_email() {
+
+  $options = wpns_get_options();
   
-$url
-    
-Viele Grüße,
-Miriam, Tobias und Ava
-";
+  return $options['wpns_sender_email'];
   
-  return $text;
+}
+
+function wpns_get_sender_name() {
+  
+  $options = wpns_get_options();
+  
+  return $options['wpns_sender_name'];
   
 }
 
@@ -58,10 +128,10 @@ Miriam, Tobias und Ava
  */
 function wpns_send_mail($post, $subscriber) {
   
-  $headers = 'From: Avas Blog <blog@avathea.de>' . "\r\n";
+  $headers = 'From: '. wpns_get_sender_name() .' <'. wpns_get_sender_email() .'>' . "\r\n";
   
   // FIXME: Just for test purposes
-  //if ($subscriber->ID == 1 || $subscriber->ID == 2) {
+  if ($subscriber->ID == 1 || $subscriber->ID == 2) {
   
     wp_mail(
       $subscriber->user_email, 
@@ -70,7 +140,7 @@ function wpns_send_mail($post, $subscriber) {
       $headers
     );
   
-  //}
+  }
   
 }
 
@@ -109,7 +179,43 @@ function wp_notify_subscribers($post_id) {
   
 }
 
+function wpns_install() {
+  
+  $initial_options = array();
+  
+  $initial_options['wpns_version']          = wpns_get_version();
+  $initial_options['wpns_sender_name']      = get_bloginfo('name');
+  $initial_options['wpns_sender_email']     = get_bloginfo('admin_email');
+  $initial_options['wpns_message_subject']  = 'New message from Blog';
+  $initial_options['wpns_message_text']     = "Hey [receiver_display_name],
+    
+There is a new post in [blog_name]. Check out the following url:
+
+[url]
+
+";
+    
+  update_option('wpns_options', $initial_options);
+  
+}
+
+function wpns_uninstall() {
+  
+  delete_option('wpns_options');
+  
+}
+
+
+$file_name = WP_PLUGIN_DIR . '/wp-notify-subscribers/wp-notify-subscribers.php';
+
+error_log($file_name);
+
+register_activation_hook( $file_name, 'wpns_install');
+register_deactivation_hook($file_name, 'wpns_uninstall');
+
+require_once('settings.php');
 
 add_filter('publish_post', 'wp_notify_subscribers');
+
 
 ?>
